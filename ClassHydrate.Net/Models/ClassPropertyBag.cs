@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace ClassHydrate.Net.Models
 {
@@ -25,6 +26,13 @@ namespace ClassHydrate.Net.Models
                 StringComparer.OrdinalIgnoreCase
             );
             ModelType = modelType ?? throw new ArgumentNullException(nameof(modelType));
+        }
+
+        public ClassPropertyBag(Type modelType, IEnumerable<KeyValuePair<string, IClassProperty>> properties)
+        {
+            ModelType = modelType ?? throw new ArgumentNullException(nameof(modelType));
+            _properties = properties?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase)
+                     ?? throw new ArgumentNullException(nameof(properties));
         }
 
         public IClassProperty this[string key] => _properties[key];

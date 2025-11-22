@@ -143,24 +143,6 @@ namespace ClassHydrate.Net.Tests
         }
 
         [Fact]
-        public void Test()
-        {
-            var classWithManyConstructors = typeof(ClassWithManyConstructors);
-            var classWithManyConstructorsProperties = classWithManyConstructors.ToClassPropertyBag();
-            var constructors = classWithManyConstructors.GetConstructors();
-            var constructorParameters = new List<ParameterInfo[]>();
-            var classConstructors = new List<ClassConstructorInfo>();
-            foreach (var constructor in constructors)
-            {
-                classConstructors.Add(new ClassConstructorInfo(constructor));
-            }
-
-            var lastConstructor = classConstructors.Last();
-
-            Assert.True(true);
-        }
-
-        [Fact]
         public void TypedExtensions_GetConstructorInfos_ReturnsAllConstructors()
         {
             // Arrange

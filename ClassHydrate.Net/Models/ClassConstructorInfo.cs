@@ -37,7 +37,7 @@ namespace ClassHydrate.Net.Models
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns>The constructed object.</returns>
-        object Invoke(object[] constructorProperties);
+        object Invoke(IEnumerable<object> constructorProperties);
 
         /// <summary>
         /// Invokes the constructor with the specified parameters and returns an instance of type T.
@@ -45,7 +45,7 @@ namespace ClassHydrate.Net.Models
         /// <typeparam name="T">The type T to be constructed</typeparam>.
         /// <param name="parameters"></param>
         /// <returns>The constructed object of type T.</returns>
-        T Invoke<T>(object[] constructorProperties);
+        T Invoke<T>(IEnumerable<object> constructorProperties);
     }
 
     /// <inheritdoc/>
@@ -73,13 +73,13 @@ namespace ClassHydrate.Net.Models
         public bool IsPublic => _constructorInfo.IsPublic;
         public IEnumerable<IClassConstructorParameterInfo> Parameters => _parameters;
 
-        public object Invoke(object[] constructorProperties)
+        public object Invoke(IEnumerable<object> constructorProperties)
         {
-            var instance = _constructorInfo.Invoke(constructorProperties);
+            var instance = _constructorInfo.Invoke(constructorProperties.ToArray());
             return instance;
         }
 
-        public T Invoke<T>(object[] constructorProperties)
+        public T Invoke<T>(IEnumerable<object> constructorProperties)
         {
             var instance = Invoke(constructorProperties);
             return (T)instance;

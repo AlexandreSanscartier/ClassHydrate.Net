@@ -66,7 +66,6 @@ namespace ClassHydrate.Net
 
             var classConstructorSelector = new ClassConstructorSelector(allConstructorInfos);
             var bestConstructorInfo = classConstructorSelector.Best(classPropertyBag);
-
             if (bestConstructorInfo is null)
             {
                 throw new HydrationException(
@@ -76,12 +75,18 @@ namespace ClassHydrate.Net
                     message: $"No suitable constructor found for type '{targetType.FullName}'.");
             }
 
-            var classPropertyConstructorAligner = new ClassPropertyConstructorAligner();
-            var alignedConstructorProperties = classPropertyConstructorAligner.AlignPropertiesForConstructor(classPropertyBag, bestConstructorInfo);
+            var extractedConstructorProperties = ClassPropertyConstructorExtractor.Extract(classPropertyBag, bestConstructorInfo);
 
             try
             {
-                var hydratedObject = bestConstructorInfo.Invoke<T>(alignedConstructorProperties);
+                var hydratedObject = bestConstructorInfo.Invoke<T>(extractedConstructorProperties.Results);
+
+                var propertiesLeftToSet = classPropertyBag
+                    .Where(x => !extractedConstructorProperties.PropertyNames.Contains(x.Key))
+                    .ToClassPropertyBag(classPropertyBag);
+
+                hydratedObject.SetPropertyValues<T>(propertiesLeftToSet);
+
                 return hydratedObject;
             }
             catch (Exception ex) when (

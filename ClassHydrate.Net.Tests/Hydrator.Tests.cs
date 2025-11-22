@@ -68,9 +68,9 @@ namespace ClassHydrate.Net.Tests
                 typeof(ClassWithManyConstructors),
                 new Dictionary<string, IClassProperty>(StringComparer.OrdinalIgnoreCase)
                 {
-                    { "Id", new ClassProperty() { Type = typeof(int), Value = 42, Name = "Id" } },
-                    { "Name", new ClassProperty() { Type = typeof(string), Value = "Hydrated Name", Name = "Name" } },
-                    { "Price", new ClassProperty() { Type = typeof(decimal), Value = 29.99m, Name = "Price" } },
+                    { "Id", CreateClassProperty("Id", 42) },
+                    { "Name", CreateClassProperty("Name", "Hydrated Name") },
+                    { "Price", CreateClassProperty("Price", 29.99m) },
                 }
             );
 
@@ -85,6 +85,37 @@ namespace ClassHydrate.Net.Tests
         }
 
         [Fact]
+        public void Huydrator_WhenHydrateCalledWithDefaultConstructor_ReturnsObjectWithSetProperties()
+        {
+            // Arrange
+            var hydrator = new Hydrator();
+            var classPropertyBag = new ClassPropertyBag(
+                typeof(ClassWithManyConstructors),
+                new Dictionary<string, IClassProperty>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "Id", CreateClassProperty("Id", 42) },
+                    { "Name", CreateClassProperty("Name", "Hydrated Name") },
+                    { "Price", CreateClassProperty("Price", 29.99m) },
+                    { "Population", CreateClassProperty("Population", 1000L) },
+                    { "Rating", CreateClassProperty("Rating", 4.5f) },
+                    { "CreatedDate", CreateClassProperty("CreatedDate", new DateTime(2024, 1, 1)) },
+                }
+            ); 
+
+            // Act
+            var result = hydrator.Hydrate<PrimitiveClass>(classPropertyBag);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(42, result.Id);
+            Assert.Equal("Hydrated Name", result.Name);
+            Assert.Equal(1000L, result.Population);
+            Assert.Equal(29.99m, result.Price);
+            Assert.Equal(4.5f, result.Rating);
+            Assert.Equal(new DateTime(2024, 1, 1), result.CreatedDate);
+        }
+
+        [Fact]
         public void Hydrator_WhenHydrationCalledWithNonExistantConstructorParameters_Throws()
         {
             // Arrange
@@ -93,12 +124,22 @@ namespace ClassHydrate.Net.Tests
                 typeof(ClassWithNoDefaultConstructor),
                 new Dictionary<string, IClassProperty>(StringComparer.OrdinalIgnoreCase)
                 {
-                    { "Name", new ClassProperty() { Type = typeof(string), Value = "Hydrated Name", Name = "Name" } },
+                    { "Name", CreateClassProperty("Name", "Hydrated Name") },
                 }
             );
 
             // Act & Assert
             Assert.Throws<HydrationException>(() => hydrator.Hydrate<ClassWithNoDefaultConstructor>(classPropertyBag));
+        }
+
+        private IClassProperty CreateClassProperty<T>(string name, T value)
+        {
+            return new ClassProperty
+            {
+                Type = typeof(T),
+                Value = value,
+                Name = name
+            };
         }
     }
 }
