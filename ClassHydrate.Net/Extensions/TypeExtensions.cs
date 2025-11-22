@@ -37,7 +37,7 @@ namespace ClassHydrate.Net.Extensions
         /// </summary>
         /// <param name="type">The <seealso cref="Type"/> to create a Dictionary of <seealso cref="IClassProperty"/>.</param>
         /// <returns>A Dictionary of <seealso cref="IClassProperty"/> with the name of the property as the key.</returns>
-        public static IClassPropertyBag ToClassPropertyBag(this Type type)
+        public static IMutableClassPropertyBag ToClassPropertyBag(this Type type)
         {
             var properties = type.GetTypePropertyTypeResult();
             var classPropertyDictionary = new Dictionary<string, IClassProperty>();
@@ -60,7 +60,7 @@ namespace ClassHydrate.Net.Extensions
         /// </summary>
         /// <param name="type">The <seealso cref="Type"/> to create a Dictionary of <seealso cref="IClassProperty"/>.</param>
         /// <returns>A Dictionary of <seealso cref="IClassProperty"/> with the name of the property as the key and values.</returns>
-        public static IClassPropertyBag ToClassPropertyBagWithValues<T>(this Type type, T model) 
+        public static IMutableClassPropertyBag ToClassPropertyBagWithValues<T>(this Type type, T model) 
         {
             if(model is null) throw new ArgumentNullException(nameof(model));
             var properties = type.GetTypePropertyTypeResult();

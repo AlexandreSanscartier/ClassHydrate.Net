@@ -132,6 +132,26 @@ namespace ClassHydrate.Net.Tests
             Assert.Throws<HydrationException>(() => hydrator.Hydrate<ClassWithNoDefaultConstructor>(classPropertyBag));
         }
 
+        [Fact]
+        public void Hydrator_WhenDehydrateCalledAndModifyPropertiesAndHydrate_Called_ReturnsModifiedObject()
+        {
+            // Arrange
+            var hydrator = new Hydrator();
+
+            // Act
+            var classPropertyBag = hydrator.Dehydrate<PrimitiveClass>();
+
+            classPropertyBag.TryEditValue("Id", 99);
+            classPropertyBag.TryEditValue("Name", "Alice");
+
+            var result = hydrator.Hydrate<PrimitiveClass>(classPropertyBag);
+
+            // Assert
+            Assert.Equal(99, result.Id);
+            Assert.Equal("Alice", result.Name);
+
+        }
+
         private IClassProperty CreateClassProperty<T>(string name, T value)
         {
             return new ClassProperty

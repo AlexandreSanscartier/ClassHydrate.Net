@@ -23,7 +23,7 @@ namespace ClassHydrate.Net
         /// </summary>
         /// <typeparam name="T">The type to Dehydrate</typeparam>
         /// <returns>A Dictionary with propertyName as a key and an <seealso cref="IClassProperty"/> as a value.</returns>
-        IClassPropertyBag Dehydrate<T>();
+        IMutableClassPropertyBag Dehydrate<T>();
 
         /// <summary>
         /// Dehydrate a class type to a dictionary of property names and <seealso cref="IClassProperty"/> objects.
@@ -31,20 +31,20 @@ namespace ClassHydrate.Net
         /// <typeparam name="T">The type to Dehydrate.</typeparam>
         /// <param name="model">The instance of the type to Dehydrate.</param>
         /// <returns>A Dictionary with propertyName as a key and an <seealso cref="IClassProperty"/> as a value.</returns>
-        IClassPropertyBag Dehydrate<T>(T model);
+        IMutableClassPropertyBag Dehydrate<T>(T model);
     }
 
     /// <inheritdoc/>
     internal class Hydrator : IHydrator
     {
-        public IClassPropertyBag Dehydrate<T>()
+        public IMutableClassPropertyBag Dehydrate<T>()
         {
             var type = typeof(T);
             var classProperties = type.ToClassPropertyBag();
             return classProperties;
         }
 
-        public IClassPropertyBag Dehydrate<T>(T model) 
+        public IMutableClassPropertyBag Dehydrate<T>(T model) 
         {
             var type = typeof(T);
             var classProperties = type.ToClassPropertyBagWithValues(model);

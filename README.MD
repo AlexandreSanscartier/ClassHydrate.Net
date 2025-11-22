@@ -19,20 +19,8 @@ Optionally add badges here later, e.g.:
 - [When to Use](#when-to-use)
 - [Getting Started](#getting-started)
   - [Installation](#installation)
-  - [Basic Example](#basic-example)
-- [Core Concepts](#core-concepts)
-  - [Hydration & Dehydration](#hydration--dehydration)
-  - [Property Metadata](#property-metadata)
-- [API Overview](#api-overview)
-- [Usage Examples](#usage-examples)
-  - [Dynamic Form Generation](#dynamic-form-generation)
-  - [Patch / Partial Updates](#patch--partial-updates)
-  - [Generic Admin / Backoffice UIs](#generic-admin--backoffice-uis)
-- [Advanced Topics](#advanced-topics)
-  - [Custom Converters](#custom-converters)
-  - [Ignoring or Renaming Properties](#ignoring-or-renaming-properties)
-  - [Validation](#validation)
-- [Performance Notes](#performance-notes)
+  - [Basic Examples](#basic-examples)
+  - [Limitations](#limitations)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Development](#development)
@@ -45,7 +33,7 @@ Optionally add badges here later, e.g.:
 
 **ClassHydrate.Net** is a small C# library that:
 
-- **Dehydrates** a class instance into a `Dictionary<string, object>` (plus optional metadata).
+- **Dehydrates** a class instance into a `IClassPropertyBag : IReadOnlyDictionary<string, IClassProperty>` (plus optional metadata).
 - Lets you **inspect and modify** that dictionary (e.g., in a UI or over the wire).
 - **Rehydrates** the dictionary back into a strongly-typed instance.
 
@@ -66,7 +54,7 @@ The focus is on:
 ## Features
 
 - 🔁 **Bidirectional mapping**  
-  Class instance ⇄ `Dictionary<string, object>`.
+  Class instance ⇄ `IClassPropertyBag`.
 
 - 🧩 **Metadata-aware design** (planned)  
   Expose property type, nullability, attributes, etc. for UI generation.
@@ -79,8 +67,6 @@ The focus is on:
 
 - 🧱 **Framework-agnostic**  
   No hard dependency on ASP.NET / MVC / Blazor; just plain C#.
-
-*(This list is illustrative — adjust as the implementation evolves.)*
 
 ---
 
@@ -109,3 +95,99 @@ Maybe don’t use it when:
 ```powershell
 # TODO: Update with real package info
 dotnet add package ClassHydrate.Net
+```
+
+### Basic Examples
+
+Dehydrate into a IClassPropertyBag with no set values
+
+```csharp
+public class Person {
+	public int Id { get; set; }
+	public string Name { get; set; }
+}
+
+var hydrator = new Hydrator();
+var result hydrator.Dehydrate<Person>();
+/*
+["Id"]		->  IClassProperty { Name = "Id", Value = null, Type = typeof(int) }
+["Name"]	->  IClassProperty { Name = "Name", Value = null, Type = typeof(string) }
+*/
+```
+
+Dehydrate into a IClassPropertyBag with set values from an object
+
+```csharp
+public class Person {
+	public int Id { get; set; }
+	public string Name { get; set; }
+}
+
+var person = new Person { Id = 1, Name = "Alice" };
+var hydrator = new Hydrator();
+var result hydrator.Dehydrate(person);
+/*
+["Id"]		->  IClassProperty { Name = "Id", Value = 1, Type = typeof(int) }
+["Name"]	->  IClassProperty { Name = "Name", Value = "Alice", Type = typeof(string) }
+*/
+```
+
+Rehydrate from a IClassPropertyBag back into a strongly-typed object
+
+```csharp
+public class Person {
+	public int Id { get; set; }
+	public string Name { get; set; }
+}
+
+// Normally you would get this from Dehydrate();
+var classPropertyBag = new ClassPropertyBag(
+    typeof(ClassWithManyConstructors),
+    new Dictionary<string, IClassProperty>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Id", CreateClassProperty("Id", 42) },
+        { "Name", CreateClassProperty("Name", "Alice") },
+    }
+);
+
+var hydrator = new Hydrator();
+var result = hydrator.Hydrate<Person>(classPropertyBag);
+/*
+result -> Person { Id = 42, Name = "Alice" }
+*/
+```
+
+Dehydrate, modify values and then Hydrate
+
+```csharp
+public class Person {
+	public int Id { get; set; }
+	public string Name { get; set; }
+}
+
+var hydrator = new Hydrator();
+var classPropertyBag = hydrator.Dehydrate<Person>();
+
+// Modify values
+classPropertyBag.TryEditValue("Id", 42);
+classPropertyBag.TryEditValue("Name", "Alice");
+
+var result = hydrator.Hydrate<Person>(classPropertyBag);
+
+/*
+result -> Person { Id = 42, Name = "Alice" }
+*/
+```
+
+## Limitations
+
+- Currently supports only primitive types and strings. Complex types and collections are not fully supported yet.
+- In order to properly detect constructors the property names must match the constructor parameter names (case-insensitive).
+- Does not yet support validation rules or attributes on properties (except basic type validation).
+- Performance may be impacted for very large object graphs due to reflection overhead.
+
+## Roadmap
+
+- [x] Initial release with basic Dehydrate and Hydrate functionality.
+- [ ] Adding custom validation rules
+- [ ] Support for nested objects and collections.
