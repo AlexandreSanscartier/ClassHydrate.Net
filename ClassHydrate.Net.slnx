@@ -2,7 +2,6 @@
   <Folder Name="/Solution Items/">
     <File Path="README.MD" />
   </Folder>
-  <Project Path="ClassHydrate.ConsoleRunner/ClassHydrate.ConsoleRunner.csproj" />
   <Project Path="ClassHydrate.Net.Tests/ClassHydrate.Net.Tests.csproj" />
   <Project Path="ClassHydrate.Net/ClassHydrate.Net.csproj" />
 </Solution>

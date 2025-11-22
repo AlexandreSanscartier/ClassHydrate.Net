@@ -1,4 +1,5 @@
 ﻿using ClassHydrate.Net.Extensions;
+using ClassHydrate.Net.Models;
 using ClassHydrate.Net.Tests.Models;
 using System.Reflection;
 
@@ -102,7 +103,7 @@ namespace ClassHydrate.Net.Tests
                 "CreatedDate"
             };
             // Act
-            var propertyDictionary = primitiveClassType.ToDictionary();
+            var propertyDictionary = primitiveClassType.ToClassPropertyBag();
             // Assert
             Assert.Equal(6, propertyDictionary.Count);
             foreach (var propertyName in primitiveClassPropertyNames)
@@ -129,7 +130,7 @@ namespace ClassHydrate.Net.Tests
             };
 
             // Act
-            var propertyDictionary = primitiveClassType.ToDictionaryWithValues(primitiveClassInstance);
+            var propertyDictionary = primitiveClassType.ToClassPropertyBagWithValues(primitiveClassInstance);
 
             // Assert
             Assert.Equal(6, propertyDictionary.Count);
@@ -145,16 +146,31 @@ namespace ClassHydrate.Net.Tests
         public void Test()
         {
             var classWithManyConstructors = typeof(ClassWithManyConstructors);
-            var classWithManyConstructorsProperties = classWithManyConstructors.ToDictionary();
+            var classWithManyConstructorsProperties = classWithManyConstructors.ToClassPropertyBag();
             var constructors = classWithManyConstructors.GetConstructors();
             var constructorParameters = new List<ParameterInfo[]>();
+            var classConstructors = new List<ClassConstructorInfo>();
             foreach (var constructor in constructors)
             {
-                var parameters = constructor.GetParameters();
-                constructorParameters.Add(parameters);
+                classConstructors.Add(new ClassConstructorInfo(constructor));
             }
 
+            var lastConstructor = classConstructors.Last();
+
             Assert.True(true);
+        }
+
+        [Fact]
+        public void TypedExtensions_GetConstructorInfos_ReturnsAllConstructors()
+        {
+            // Arrange
+            var classConstructorType = typeof(ClassWithManyConstructors);
+
+            // Act
+            var constructorInfos = classConstructorType.GetConstructorInfos();
+
+            // Assert
+            Assert.Equal(5, constructorInfos.Length);
         }
     }
 }

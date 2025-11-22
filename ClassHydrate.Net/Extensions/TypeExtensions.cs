@@ -1,6 +1,5 @@
 ﻿using ClassHydrate.Net.Models;
 using System.Reflection;
-using System.Text.Json.Serialization;
 
 namespace ClassHydrate.Net.Extensions
 {
@@ -25,12 +24,12 @@ namespace ClassHydrate.Net.Extensions
         /// </summary>
         /// <param name="type">The <seealso cref="Type"/> to get the <seealso cref="IPropertyTypeResult"/> for.</param>
         /// <returns>The list of <seealso cref="IPropertyTypeResult"/>.</returns>
-        public static IEnumerable<IPropertyTypeResult> GetTypePropertyTypeResult(this Type type)
+        public static IEnumerable<IClassPropertyInfo> GetTypePropertyTypeResult(this Type type)
         {
-            var propertyResults = type.GetProperties().Select(
-                x => new PropertyTypeResult(x)
+            var classPropertyInfos = type.GetProperties().Select(
+                x => new ClassPropertyInfo(x)
             );
-            return propertyResults;
+            return classPropertyInfos;
         }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace ClassHydrate.Net.Extensions
         /// </summary>
         /// <param name="type">The <seealso cref="Type"/> to create a Dictionary of <seealso cref="IClassProperty"/>.</param>
         /// <returns>A Dictionary of <seealso cref="IClassProperty"/> with the name of the property as the key.</returns>
-        public static IDictionary<string, IClassProperty> ToDictionary(this Type type)
+        public static IClassPropertyBag ToClassPropertyBag(this Type type)
         {
             var properties = type.GetTypePropertyTypeResult();
             var classPropertyDictionary = new Dictionary<string, IClassProperty>();
@@ -51,7 +50,8 @@ namespace ClassHydrate.Net.Extensions
                 };
                 classPropertyDictionary.Add(property.Name, modelProperty);
             }
-            return classPropertyDictionary;
+            var classPropertyBag = new ClassPropertyBag(type, classPropertyDictionary);
+            return classPropertyBag;
         }
 
         /// <summary>
@@ -60,24 +60,25 @@ namespace ClassHydrate.Net.Extensions
         /// </summary>
         /// <param name="type">The <seealso cref="Type"/> to create a Dictionary of <seealso cref="IClassProperty"/>.</param>
         /// <returns>A Dictionary of <seealso cref="IClassProperty"/> with the name of the property as the key and values.</returns>
-        public static IDictionary<string, IClassProperty> ToDictionaryWithValues<T>(this Type type, T model) 
-            where T : new()
+        public static IClassPropertyBag ToClassPropertyBagWithValues<T>(this Type type, T model) 
         {
             if(model is null) throw new ArgumentNullException(nameof(model));
             var properties = type.GetTypePropertyTypeResult();
             var classPropertyDictionary = new Dictionary<string, IClassProperty>();
             foreach (var property in properties)
             {
-                var value = property.GetValueFromConcreteObject(model);
+                var propertyName = property.Name;
+                var value = GetValueFromConcreteObject(propertyName, model);
                 var modelProperty = new ClassProperty()
                 {
-                    Name = property.Name,
+                    Name = propertyName,
                     Type = property.Type,
                     Value = value
                 };
                 classPropertyDictionary.Add(property.Name, modelProperty);
             }
-            return classPropertyDictionary;
+            var classPropertyBagWithValues = new ClassPropertyBag(type, classPropertyDictionary);
+            return classPropertyBagWithValues;
         }
 
         /// <summary>
@@ -99,6 +100,31 @@ namespace ClassHydrate.Net.Extensions
                 type == typeof(DateTimeOffset) ||
                 type == typeof(TimeSpan) ||
                 type == typeof(Guid);
+        }
+
+        /// <summary>
+        /// Gets the <seealso cref="ClassConstructorInfo"/> for the type <seealso cref="Type"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to get constructors for.</param>
+        /// <returns>A list of <seealso cref="ClassConstructorInfo"/>.</returns>
+        public static ClassConstructorInfo[] GetConstructorInfos(this Type type)
+        {
+            var constructors = type.GetConstructors();
+            var classConstructoInfos = constructors.Select(x => new ClassConstructorInfo(x)).ToArray();
+            return classConstructoInfos;
+        }
+
+        private static PropertyInfo? GetPropertyInfoForValue(this Type type, string propertyName)
+            => type.GetProperty(propertyName);
+
+        private static object GetValueFromConcreteObject(string name, object value)
+        {
+            var valueType = value.GetType();
+            var propertyInfo = valueType.GetPropertyInfoForValue(name);
+            if (propertyInfo is null) throw new ArgumentException($"Property '{name}' does not exist on type '{valueType.FullName}'.", nameof(name));
+            var objectValue = propertyInfo.GetValue(value, null);
+            if (objectValue is null) throw new InvalidOperationException($"Property '{name}' on type '{valueType.FullName}' is null.");
+            return objectValue;
         }
     }
 }

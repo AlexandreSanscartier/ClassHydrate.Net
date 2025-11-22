@@ -24,6 +24,12 @@ namespace ClassHydrate.Net.Tests.Models
             Price = price;
         }
 
+        public ClassWithManyConstructors(int id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+
         public ClassWithManyConstructors(int id, decimal price, string name)
         {
             Id = id;
