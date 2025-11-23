@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Powershell utilitiy scripts
+*.ps1
+
+# local nuget files
+build-number.txt

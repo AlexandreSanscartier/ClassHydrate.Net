@@ -35,7 +35,7 @@ namespace ClassHydrate.Net
     }
 
     /// <inheritdoc/>
-    internal class Hydrator : IHydrator
+    public class Hydrator : IHydrator
     {
         public IMutableClassPropertyBag Dehydrate<T>()
         {
